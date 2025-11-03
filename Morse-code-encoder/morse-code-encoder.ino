@@ -48,11 +48,14 @@ Map morseDict[] = {
     {'9', "11110"},
     {'0', "11111"}
 };
+string sentence;
 
 void setup(){
-    
+    Serial.begin(9600);
 }
 
 void loop(){
-
+    Serial.println("Enter a sentence or word to encode into Morse code: ");
+    while(Serial.available() == 0){}
+    sentence = Serial.readString();
 }
