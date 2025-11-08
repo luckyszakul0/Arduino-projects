@@ -1,8 +1,8 @@
-//  dot - 1 unit
-//  dash - 3 units
-//  time between dot/dash - 1 unit
-//  time between letters - 3 units
-//  time between words - 7 units
+/*Dot - 1 unit
+  Dash - 3 units
+  Time between dot/dash - 1 unit
+  Time between letters - 3 units
+  Time between words - 7 units*/
 
 struct Map {
     const char letter;
@@ -46,16 +46,57 @@ Map morseDict[] = {
     {'7', "11000"},
     {'8', "11100"},
     {'9', "11110"},
-    {'0', "11111"}
+    {'0', "11111"},
+    {' ', ""}
 };
-string sentence;
+
+String sentence;
+
+int unitTime = 50;
+bool letterFound = true;
+
+// A function for converting the given String into all uppercase
+String toUpperCase(const String &inputText){
+    String outputText = inputText;
+    for(char &letter : outputText){
+        if(letter >= 'a' && letter <= 'z')
+            letter = letter - 'a' + 'A'; // This line operates on ASCII table numbers ensuring the correct outcome
+    }
+    return outputText;
+}
 
 void setup(){
     Serial.begin(9600);
 }
 
 void loop(){
-    Serial.println("Enter a sentence or word to encode into Morse code: ");
-    while(Serial.available() == 0){}
-    sentence = Serial.readString();
+    if(letterFound){
+        Serial.println("Enter a sentence or word to encode into Morse code (use only letters of the English alphabet and digits): ");
+        while(Serial.available() == 0){}
+
+        sentence = Serial.readString();
+        sentence = toUpperCase(sentence);
+    }
+
+    // The below for loop is checking if the letters used in the sentence exist in the morseDict
+
+    for(int i = 0; i < sentence.length(); i++){
+
+        for(int j = 0; j < (sizeof(morseDict) / sizeof(morseDict[0])); j++){
+            if(sentence[i] != morseDict[j].letter){
+                letterFound = false;
+            }else{
+                letterFound = true;
+                break;
+            }
+        }
+
+        if(!letterFound){
+            Serial.println("Use only digits and letter of English alphabet! Enter your word or sentence: ");
+            while(Serial.available() == 0){}
+            sentence = Serial.readString();
+            sentence = toUpperCase(sentence);
+            return 0;
+        }
+    }
 }
