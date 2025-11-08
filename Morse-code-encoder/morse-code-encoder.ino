@@ -10,7 +10,7 @@ struct Map {
 };
 
 //  map for all letters in morse code - 1 means dash, 0 means dot
-Map morseDict[] = {
+const Map morseDict[] = {
     {'A', "01"},
     {'B', "1000"},
     {'C', "1010"},
@@ -47,13 +47,14 @@ Map morseDict[] = {
     {'8', "11100"},
     {'9', "11110"},
     {'0', "11111"},
-    {' ', ""}
+    {' ', " "}
 };
 
 String sentence;
 
-int unitTime = 50;
-bool letterFound = true;
+const int unitTime = 50;
+bool letterFound = true, spacePlayed;   // letterFound set to true to let the first string input play normally
+const int pulsePin = 12;
 
 // A function for converting the given String into all uppercase
 String toUpperCase(const String &inputText){
@@ -65,11 +66,20 @@ String toUpperCase(const String &inputText){
     return outputText;
 }
 
+// A function playing a sound with adjustable sound length
+void playSound(const int delayTime){
+    digitalWrite(pulsePin, HIGH);
+    delay(delayTime);
+    digitalWrite(pulsePin, LOW);
+}
+
 void setup(){
     Serial.begin(9600);
+    pinMode(pulsePin, OUTPUT);
 }
 
 void loop(){
+
     if(letterFound){
         Serial.println("Enter a sentence or word to encode into Morse code (use only letters of the English alphabet and digits): ");
         while(Serial.available() == 0){}
@@ -92,11 +102,39 @@ void loop(){
         }
 
         if(!letterFound){
-            Serial.println("Use only digits and letter of English alphabet! Enter your word or sentence: ");
+            Serial.println("Use only digits and letter of the English alphabet! Enter your word or sentence: ");
             while(Serial.available() == 0){}
             sentence = Serial.readString();
             sentence = toUpperCase(sentence);
             return 0;
+        }
+    }
+
+    //  The main course - taking every letter, converting it to morseDict.config and playing the configuration
+
+    for(int i = 0; i < sentence.length(); i++){
+        for(int j = 0; j < (sizeof(morseDict) / sizeof(morseDict[0])); j++){
+            if(sentence[i] == morseDict[j].letter){
+                for(int k = 0; k < morseDict[j].config.length(); k++){
+                    spacePlayed = false;
+                    switch (morseDict[j].config[k]){
+                    case '1':
+                        playSound(unitTime*3);  // Dash sound
+                        break;
+                    case '0':
+                        playSound(unitTime);    // Dot sound
+                        break;
+                    case ' ':
+                        delay(unitTime*7);  // Time between words
+                        spacePlayed = true;
+                        break;
+                    }
+                    if(!spacePlayed)
+                        delay(unitTime);    // Time between dot/dash
+                }
+                if(!spacePlayed)
+                    delay(unitTime*3);  // Time between letters               
+            }
         }
     }
 }
