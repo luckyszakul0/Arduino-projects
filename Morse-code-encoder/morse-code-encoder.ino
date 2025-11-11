@@ -74,11 +74,13 @@ void playSound(const int delayTime){
 }
 
 void setup(){
-    Serial.begin(9600);
+    Serial.begin(115200);
     pinMode(pulsePin, OUTPUT);
 }
 
 void loop(){
+
+    //  The below if statement prevents printing the line if an error ocurred
 
     if(letterFound){
         Serial.println("Enter a sentence or word to encode into Morse code (use only letters of the English alphabet and digits): ");
@@ -130,10 +132,10 @@ void loop(){
                         break;
                     }
                     if(!spacePlayed)
-                        delay(unitTime);    // Time between dot/dash
+                        delay(unitTime);    // Time between dot/dash, not played after space
                 }
                 if(!spacePlayed)
-                    delay(unitTime*3);  // Time between letters               
+                    delay(unitTime*3);  // Time between letters, not played after space               
             }
         }
     }
