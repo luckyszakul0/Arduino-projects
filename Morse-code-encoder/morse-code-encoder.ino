@@ -52,7 +52,7 @@ const Map morseDict[] = {
 
 String sentence;
 
-const int unitTime = 150;
+const int unitTime = 50;
 bool letterFound = true, spacePlayed;   // letterFound set to true to let the first string input play normally
 const int pulsePin = 12;
 
