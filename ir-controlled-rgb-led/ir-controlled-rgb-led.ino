@@ -17,6 +17,7 @@ const int IR_OUT_PIN = 3;
 LiquidCrystal LCD(LCD_RS_PIN, LCD_ENABLE_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
 
 void writeToRGB(int Rvalue, int Gvalue, int Bvalue, int brightnessPercentage, bool powerOn){
+  //If the LED is supposed to be off, RGB values calculation are skipped
   if(!powerOn){
     analogWrite(RGB_RED_PIN, 0);
     analogWrite(RGB_GREEN_PIN, 0);
@@ -24,6 +25,7 @@ void writeToRGB(int Rvalue, int Gvalue, int Bvalue, int brightnessPercentage, bo
     return;
   }
 
+  //The values written to LED are calculated based on brightness
   int brightness = map(brightnessPercentage, 0, 100, 255, 0);
   Rvalue = Rvalue - brightness;
   Gvalue = Gvalue - brightness;
@@ -41,6 +43,7 @@ void writeToLCD(int brightnessPercentage, String colorName, bool powerOn){
   LCD.clear();
   LCD.home();
 
+  //If the LED is supposed to be off, the LCD shows info about that fact
   if(!powerOn){
     LCD.print("The LED is off");
     LCD.setCursor(0, 1);
@@ -48,6 +51,7 @@ void writeToLCD(int brightnessPercentage, String colorName, bool powerOn){
     return;
   }
 
+  //Formula for LCD displaying info about current LED spec
   LCD.print("Color is: ");
   LCD.print(colorName);
   LCD.setCursor(0, 1);
@@ -57,7 +61,6 @@ void writeToLCD(int brightnessPercentage, String colorName, bool powerOn){
 }
 
 void setup() {
-  Serial.begin(9600);
   LCD.begin(16, 2);
   
   pinMode(RGB_RED_PIN, OUTPUT);
@@ -66,52 +69,82 @@ void setup() {
 
   IrReceiver.begin(IR_OUT_PIN, ENABLE_LED_FEEDBACK);
 
+  // Manual info print on LCD at the start of the program
   LCD.print("The LED is off");
   LCD.setCursor(0, 1);
   LCD.print("Press power btn");
 }
 
 void loop() {
+  // These variables are made static to prevent them from losing value between loops
   static int brightness;
   static int RVal, GVal, BVal;
   static String colorName;
   static bool powerOn = false;
 
+  //If there is something to decode, the switch picks from all possible button options
   if(IrReceiver.decode()){
-
-    IrReceiver.printIRResultShort(&Serial);
-
     switch(IrReceiver.decodedIRData.command){
+
       case 0x45: //Power button
         RVal = 255, GVal = 255, BVal = 255;
         brightness = 100;
         colorName = "White";
         powerOn = true;
         break;
+
       case 0x47: //Func/stop button
         powerOn = false;
         break;
+
       case 0x9: //Arrow up button
         brightness += 10;
         brightness = constrain(brightness, 0, 100);
         break;
+
       case 0x7: //Arrow down button
         brightness -= 10;
         brightness = constrain(brightness, 0, 100);
         break;
+
       case 0x16: //0 button
         RVal = 255, GVal = 255, BVal = 255;
         colorName = "White";
         break;
+
       case 0xC: //1 button
         RVal = 255, GVal = 0, BVal = 0;
         colorName = "Red";
         break;
-      // case 0x18: //2 button
-      // case 0x5E: //3 button
-      // case 0x8: //4 button
-      // case 0x1C: //5 button
-      // case 0x5A: //6 button
+
+      case 0x18: //2 button
+        RVal = 0, GVal = 255, BVal = 0;
+        colorName = "Green";
+        break;
+
+      case 0x5E: //3 button
+        RVal = 0, GVal = 0, BVal = 255;
+        colorName = "Blue";
+        break;
+
+      case 0x8: //4 button
+        RVal = 0, GVal = 255, BVal = 255;
+        colorName = "Cyan";
+        break;
+
+      case 0x1C: //5 button
+        RVal = 255, GVal = 0, BVal = 255;
+        colorName = "Purple";
+        break;
+
+      case 0x5A: //6 button
+        RVal = 255, GVal = 255, BVal = 0;
+        colorName = "Yellow";
+        break;
+
+      default:
+        break;
+
     }
     writeToRGB(RVal, GVal, BVal, brightness, powerOn);
     writeToLCD(brightness, colorName, powerOn);
